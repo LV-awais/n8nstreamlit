@@ -53,12 +53,12 @@ def authenticate_google_services():
         "project_id": credentials_data["project_id"],
         "private_key_id": credentials_data["private_key_id"],
         "private_key": credentials_data.get("private_key"),
-        "client_email": credentials_data["client_email"],
-        "client_id": credentials_data["client_id"],
-        "auth_uri": credentials_data["auth_uri"],
-        "token_uri": credentials_data["token_uri"],
-        "auth_provider_x509_cert_url":credentials_data["auth_provider_x509_cert_url"],
-        "client_x509_cert_url": credentials_data["client_x509_cert_url"]
+        "client_email": credentials_data.get("client_email"),
+        "client_id": credentials_data.get("client_id"),
+        "auth_uri": credentials_data.get("auth_uri"),
+        "token_uri": credentials_data.get("token_uri"),
+        "auth_provider_x509_cert_url":credentials_data.get("auth_provider_x509_cert_url"),
+        "client_x509_cert_url": credentials_data.get("client_x509_cert_url")
     }
 
     # Create credentials from the dictionary
