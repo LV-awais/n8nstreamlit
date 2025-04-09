@@ -45,24 +45,9 @@ def authenticate_google_services():
     google_credentials_toml = st.secrets["google_credentials"]
 
     # Load the TOML content using the toml library
-    credentials_data = toml.loads(google_credentials_toml)
-
-    # Extract the necessary fields from the TOML data
-    credentials_dict = {
-        "type": credentials_data["type"],
-        "project_id": credentials_data["project_id"],
-        "private_key_id": credentials_data["private_key_id"],
-        "private_key": credentials_data.get("private_key"),
-        "client_email": credentials_data.get("client_email"),
-        "client_id": credentials_data.get("client_id"),
-        "auth_uri": credentials_data.get("auth_uri"),
-        "token_uri": credentials_data.get("token_uri"),
-        "auth_provider_x509_cert_url":credentials_data.get("auth_provider_x509_cert_url"),
-        "client_x509_cert_url": credentials_data.get("client_x509_cert_url")
-    }
 
     # Create credentials from the dictionary
-    creds = Credentials.from_service_account_info(credentials_dict, scopes=SCOPES)
+    creds = Credentials.from_service_account_info(google_credentials_toml, scopes=SCOPES)
     sheets_service = build('sheets', 'v4', credentials=creds)
     drive_service = build('drive', 'v3', credentials=creds)
     return sheets_service, drive_service
