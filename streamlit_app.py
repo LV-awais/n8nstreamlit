@@ -36,9 +36,7 @@ def generate_session_id():
 
 
 
-# Generate session ID for uniqueness
-def generate_session_id():
-    return str(uuid.uuid4())
+
 
 
 # Send message to the LLM via the Webhook URL
@@ -285,8 +283,18 @@ def main():
         st.session_state.session_id = generate_session_id()
 
     # Fetch list of all countries using pycountry
+    # Fetch list of all countries using pycountry
     countries = sorted([country.name for country in pycountry.countries])
-    selected_country = st.selectbox("Select a country", countries)
+
+    # Set default country
+    default_country = "United States"  # Change this to your desired default country
+
+    # Streamlit dropdown with default country selected
+    selected_country = st.selectbox(
+        "Select a country",
+        countries,
+        index=countries.index(default_country) if default_country in countries else 0
+    )
     brand_name = st.text_input("Enter the name of the brand")
 
     # Trigger the search with a button
