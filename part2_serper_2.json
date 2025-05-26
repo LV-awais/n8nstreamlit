@@ -1,0 +1,443 @@
+{
+  "name": "part2_serper",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        960,
+        -340
+      ],
+      "id": "8a4d91c5-25d1-4c98-bec5-5126b112ba95",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "Here's the updated process with the additional steps fetch all suppliers list and iterate over each supplier, fetch the base URL from search results and pass it to the respective scraping tools:\nTrustpilot Rating:\nTo extract Trustpilot ratings using Serper Scrap Tool:\n\nSearch: Use the Serper API to search for the supplier's name along with site:trustpilot.com to narrow down the results to Trustpilot reviews.\n\nFetch First URL: Retrieve the first URL from the search results returned by the Serper API.\n\nScrape Data: Pass the first URL to the Serper Scrap Tool to scrape the following:\n\nSupplier Rating: Extract the Trustpilot rating score (e.g., 4.5/5).\n\nReviews: Scrape customer reviews, highlighting both positive and negative feedback.\n\nSupplier Profile: Verify that only certified suppliers are included, based on their Trustpilot profile.\nZoomInfo Profile:\nTo gather details from ZoomInfo using Scrapfly Tool:\n\nSearch: Use the Serper API to search for the supplier's name along with site:zoominfo.com to find their ZoomInfo profile.\n\nFetch First URL: Retrieve the first URL from the search results returned by the Serper API.\n\nScrape Data: Pass the first URL to the Scrapfly Tool to extract the following details:\n\nProfile URL: Capture the supplier's ZoomInfo profile URL.\n\nCompany Details: Extract relevant company information such as:\n\nCompany Size: Information on the number of employees.\n\nCompany Description: Brief description of the company’s background, services, and market presence.\nRevenue\nSimilar Companies\n\nContact Information: Email, phone number, or other contact details from the ZoomInfo profile.\nand other information required for supplier acquisition.\nDomain Age:\nTo determine the domain age for the supplier’s website:\n\nSearch: Use the Domain Age Tool to retrieve the creation date of the supplier's website.\n\nCalculate Domain Age: Determine the domain age by calculating the difference between the domain creation date and the current year.\nCompile the whole detailed data in tabular form."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        280,
+        -100
+      ],
+      "id": "7062c8a2-a4d7-4a2a-b42c-fd0a8b751829",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        440
+      ],
+      "id": "fcbe17ff-b347-4a41-9ef1-751ea178d226",
+      "name": "Simple Memory1"
+    },
+    {
+      "parameters": {
+        "toolDescription": "scrape the trust pilot data to fetch trust pilot rating",
+        "method": "POST",
+        "url": "https://scrape.serper.dev",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "parametersHeaders": {
+          "values": [
+            {
+              "name": "Content-Type",
+              "valueProvider": "fieldValue",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "parametersBody": {
+          "values": [
+            {
+              "name": "url"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        340,
+        420
+      ],
+      "id": "58bea55b-1794-4473-854f-ad1a35bab448",
+      "name": "Scrape Trustpilot",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "OxueVwSXP2xgwkeb",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -260,
+        400
+      ],
+      "id": "06a582a9-c041-420b-8178-7d0e8ccfc990",
+      "name": "Google Gemini Chat Model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "XSGJFBxpqyzvLZs0",
+          "name": "Google Gemini(PaLM) Api account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "domain age",
+        "url": "https://whoisjson.com/api/v1/whois",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "parametersQuery": {
+          "values": [
+            {
+              "name": "domain"
+            },
+            {
+              "name": "format",
+              "valueProvider": "fieldValue",
+              "value": "json"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        880,
+        400
+      ],
+      "id": "907618f5-d99f-4eb4-b538-abbcdf1133c0",
+      "name": "Domain Age",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "fL9Xp6GgvuRjk6nY",
+          "name": "Header Auth account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "get the zoom info url from serper api",
+        "method": "POST",
+        "url": "https://google.serper.dev/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "parametersHeaders": {
+          "values": [
+            {
+              "name": "Content-Type",
+              "valueProvider": "fieldValue",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "parametersBody": {
+          "values": [
+            {
+              "name": "q"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        520,
+        420
+      ],
+      "id": "f5e03fb4-e16e-459b-8ea8-82c0896f8b37",
+      "name": "ZoomInfo URL",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "OxueVwSXP2xgwkeb",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "get the zoominfo data using scrapfly",
+        "url": "https://api.scrapfly.io/scrape",
+        "sendQuery": true,
+        "parametersQuery": {
+          "values": [
+            {
+              "name": "url"
+            },
+            {
+              "name": "tags",
+              "valueProvider": "fieldValue",
+              "value": "player,project:default"
+            },
+            {
+              "name": "asp",
+              "valueProvider": "fieldValue",
+              "value": "true"
+            },
+            {
+              "name": "render_js",
+              "valueProvider": "fieldValue",
+              "value": "true"
+            },
+            {
+              "name": "key",
+              "valueProvider": "fieldValue",
+              "value": "scp-test-cd1827ce3f734399b52e1c8e56bcfe42"
+            },
+            {
+              "name": "format",
+              "valueProvider": "fieldValue",
+              "value": "markdown:no_links,no_images"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        180,
+        420
+      ],
+      "id": "600ff76f-c1d1-48f1-8203-53e5e1769ace",
+      "name": "Scrapfly"
+    },
+    {
+      "parameters": {
+        "toolDescription": "use this tool to get trustpilot url",
+        "method": "POST",
+        "url": "https://google.serper.dev/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "parametersHeaders": {
+          "values": [
+            {
+              "name": "Content-Type",
+              "valueProvider": "fieldValue",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "parametersBody": {
+          "values": [
+            {
+              "name": "q"
+            },
+            {
+              "name": "num",
+              "valueProvider": "fieldValue",
+              "value": "1"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        700,
+        400
+      ],
+      "id": "70cf2453-2a9f-4e78-9362-bf4e2c7b7511",
+      "name": "Serper trsutpilot URL",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "OxueVwSXP2xgwkeb",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cc15e13e-942a-49f2-822a-eb2b226ba4cf",
+              "name": "chatInput",
+              "value": "={{$json?.chatInput || $json.body.chatInput}}",
+              "type": "string"
+            },
+            {
+              "id": "eaa62290-659d-4995-ace7-2baec93b734c",
+              "name": "sessionId",
+              "value": "={{$json?.sessionId || $json.body.sessionId}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -20,
+        -160
+      ],
+      "id": "63b4b206-4fbf-437e-845e-16ec8dea1a03",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "84c8b88b-bc67-40f6-99fd-d7d5ab527e3f",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -380,
+        -80
+      ],
+      "id": "ff7b7c6f-6149-48b2-8f94-f8d7f2f9990c",
+      "name": "Webhook",
+      "webhookId": "84c8b88b-bc67-40f6-99fd-d7d5ab527e3f"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scrape Trustpilot": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Domain Age": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ZoomInfo URL": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scrapfly": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Serper trsutpilot URL": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "c5839c29-7354-4ab2-92ab-be9df492a995",
+  "meta": {
+    "instanceId": "d7be1ed2e9bc94c9f68d3806782c95f30bc7342c57bbc30e491a6e15374c3365"
+  },
+  "id": "EJLi8XNlcJgqlTU0",
+  "tags": []
+}

@@ -1,0 +1,439 @@
+{
+  "name": "mcp-serper",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -240,
+        300
+      ],
+      "id": "a4d2cf7f-f772-4b99-bdf5-2e8dcdc8fd32",
+      "name": "When chat message received",
+      "webhookId": "9e5bb2aa-a8b2-454c-889a-6a7f37181104"
+    },
+    {
+      "parameters": {
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "When given a search query related to sourcing products, suppliers,distributors and retailors  for a specific brand, use the Serper.dev tool to identify valid suppliers, . For each valid supplier, extract the name and website URL description and snippet. Compile all data  ensuring only certified distributors and recognized B2B suppliers/retailers are included.Display the results in tabular form with bold headers. pls remove these forums from the results :  official brand-owned stores and non-relevant content like Wikipedia, blogs, forums, or general marketplaces such as Amazon, eBay, Walmart, Reddit, BestBuy, Newegg, LinkedIn, Quora, Target, AliExpress, Rakuten, Costco, Overstock, Sears, Etsy, Macys, Home Depot, Shopify, Tmall, JD.com, and similar platforms)"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        420,
+        220
+      ],
+      "id": "5bb0708e-7117-4183-8d3e-5418c2a6b8ca",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -160,
+        620
+      ],
+      "id": "3f3f21f4-a3cc-4ca4-b3c4-84a6e4798852",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "6llLK82pykdjstny",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        20,
+        700
+      ],
+      "id": "5ce26f35-5bbf-4def-9fad-682736557945",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "paWctKQMlV2Gyham",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "66c8c4ee-d169-4015-8cff-72921f491c97",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -160,
+        80
+      ],
+      "id": "5b62de5f-cde8-42dc-9f30-506ada076ffb",
+      "name": "Webhook",
+      "webhookId": "66c8c4ee-d169-4015-8cff-72921f491c97"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cc15e13e-942a-49f2-822a-eb2b226ba4cf",
+              "name": "chatInput",
+              "value": "={{$json?.chatInput || $json.body.chatInput}}",
+              "type": "string"
+            },
+            {
+              "id": "eaa62290-659d-4995-ace7-2baec93b734c",
+              "name": "sessionId",
+              "value": "={{$json?.sessionId || $json.body.sessionId}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        200,
+        100
+      ],
+      "id": "ec5bfbb1-0353-4b4c-9739-0ba6b951dafb",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        320,
+        760
+      ],
+      "id": "c211950d-ce64-44d6-8835-4ab8371b586e",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Use this tool to search the web for suppliers, distributors, or retailers of a specific brand within a particular region. It performs a real-time Google Search using the serper API and returns relevant results including titles, URLs, and snippets.",
+        "method": "POST",
+        "url": "https://google.serper.dev/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "parametersHeaders": {
+          "values": [
+            {
+              "name": "Content-Type",
+              "valueProvider": "fieldValue",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "parametersBody": {
+          "values": [
+            {
+              "name": "q"
+            },
+            {
+              "name": "num",
+              "valueProvider": "fieldValue",
+              "value": "10"
+            },
+            {
+              "name": "location"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        600,
+        700
+      ],
+      "id": "cfd2c0f0-e11e-4ccb-b3e4-ad93866090f7",
+      "name": "Serper API",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "OxueVwSXP2xgwkeb",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Use this tool to search the web for suppliers, distributors, or retailers of a specific brand within a particular region. It performs a real-time Google Search using the serper API and returns relevant results including titles, URLs, and snippets.",
+        "method": "POST",
+        "url": "https://google.serper.dev/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "parametersHeaders": {
+          "values": [
+            {
+              "name": "Content-Type",
+              "valueProvider": "fieldValue",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "parametersBody": {
+          "values": [
+            {
+              "name": "q"
+            },
+            {
+              "name": "num",
+              "valueProvider": "fieldValue",
+              "value": "50"
+            },
+            {
+              "name": "location"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        520,
+        -140
+      ],
+      "id": "8adebd92-5547-4121-828d-e35c17267300",
+      "name": "Serper API1",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "OxueVwSXP2xgwkeb",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://google.serper.dev/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "parametersBody": {
+          "values": [
+            {
+              "name": "q",
+              "valueProvider": "fieldValue",
+              "value": "{name of supplier}site.trustpilot.com"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        1220,
+        1080
+      ],
+      "id": "70abfe41-ba9e-458a-acee-d7d22d63aaa4",
+      "name": "SerperTrustpilotSearch",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "OxueVwSXP2xgwkeb",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1160,
+        280
+      ],
+      "id": "a317ec10-0e90-48d1-92eb-12ff52b9311c",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1KyoYeL2rpzbrzhjqUK1p5ZkrzprO2-Zj7aNGIraDJsY",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1KyoYeL2rpzbrzhjqUK1p5ZkrzprO2-Zj7aNGIraDJsY/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "output",
+              "displayName": "output",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1060,
+        -40
+      ],
+      "id": "b8e3459c-0db9-43e7-bcb4-29c04a3f8376",
+      "name": "Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "BTTjGLa1vcE6pDMr",
+          "name": "Google Sheets account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        []
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Serper API": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SerperTrustpilotSearch": {
+      "ai_tool": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "qrGWnSIDpL86AozO"
+  },
+  "versionId": "c5292312-0240-45bf-9423-a6c388ffc035",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d7be1ed2e9bc94c9f68d3806782c95f30bc7342c57bbc30e491a6e15374c3365"
+  },
+  "id": "TUTuTwWYAOeGgSks",
+  "tags": []
+}
